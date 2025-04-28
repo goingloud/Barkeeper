@@ -2,6 +2,10 @@
 
 A cross-platform mobile application to streamline bar inventory management by integrating a Bluetooth kitchen scale and camera-based barcode scanning into a unified workflow.
 
+
+The Scale API
+https://decentespresso.com/decentscale_api
+
 ## Goals
 
 - **Automate Weekly Inventory**: Replace manual spreadsheet entry by capturing bottle weights and barcodes in a single tap-and-scan flow.
