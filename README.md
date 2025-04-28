@@ -2,10 +2,6 @@
 
 A cross-platform mobile application to streamline bar inventory management by integrating a Bluetooth kitchen scale and camera-based barcode scanning into a unified workflow.
 
-
-The Scale API
-https://decentespresso.com/decentscale_api
-
 ## Goals
 
 - **Automate Weekly Inventory**: Replace manual spreadsheet entry by capturing bottle weights and barcodes in a single tap-and-scan flow.
@@ -46,6 +42,7 @@ https://decentespresso.com/decentscale_api
 
 ## Folder Layout
 
+```text
 lib/
 ├── main.dart                  # App entrypoint (sets up DI, runs App widget)
 ├── app.dart                   # MaterialApp (theme, routes)
@@ -147,6 +144,17 @@ lib/
 │   │   └── error_dialog.dart
 │   └── extensions/            # Dart extensions on core types
 │
-└── router/
+└── router/                    # Routing definitions
     └── app_router.dart        # Route definitions (auto_route or plain)
+```
+
+## Next Steps
+
+1. Finalize repository layer with Drift migrations.
+2. Build BLE prototype to validate weight streaming.
+3. Integrate barcode scans and link to inventory entries.
+4. Implement PIN-auth guard and secure storage flows.
+5. Flesh out UI screens: manager dashboard, session picker, inventory entry.
+6. Configure CI/CD for automated builds and test runs.
+7. User acceptance testing on iOS & Android devices.
 
