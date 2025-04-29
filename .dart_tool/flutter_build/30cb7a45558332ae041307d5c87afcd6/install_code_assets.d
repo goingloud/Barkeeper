@@ -1,0 +1,1 @@
+ C:\\Users\\wdunn\\Documents\\Code\\barkeeper\\.dart_tool\\flutter_build\\30cb7a45558332ae041307d5c87afcd6\\native_assets.json: 
