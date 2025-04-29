@@ -4,41 +4,22 @@ A cross-platform mobile application to streamline bar inventory management by in
 
 ## Goals
 
-- **Automate Weekly Inventory**: Replace manual spreadsheet entry by capturing bottle weights and barcodes in a single tap-and-scan flow.
-- **Unified Codebase**: Build one Flutter app that compiles for both iOS and Android.
-- **Secure Manager Operations**: Protect product catalog and session management behind a PIN.
-- **Open Staff Workflow**: Allow any staff member to start or resume an inventory session and record entries without authentication.
-- **Robust Data Reporting**: Store persistent catalogs and session entries in SQLite, then export joined reports (name, barcode, liquor weight, timestamp) as CSV.
+- **Automate Weekly Inventory**: Replace manual spreadsheet entry by capturing bottle weights and barcodes in a single tap-and-scan flow.  
+- **Unified Codebase**: Build one Flutter app that compiles for both iOS and Android.  
+- **Secure Manager Operations**: Protect product catalog and session management behind a PIN.  
+- **Open Staff Workflow**: Allow any staff member to start or resume an inventory session and record entries without authentication.  
+- **Robust Data Reporting**: Store persistent catalogs and session entries in SQLite, then export joined reports (name, barcode, liquor weight, timestamp) as CSV.  
 
 ## Major Decisions
 
-- **Framework & Language**: Choosing **Flutter (Dart)** for hot reload, rich UI, and single codebase deployment to iOS & Android.
-
-- **Architecture**: Implementing **Clean Architecture** with three layers:
-  1. **Presentation**: Widgets + Riverpod providers for state management.
-  2. **Domain**: Pure Dart use cases and entity models.
-  3. **Data**: Repositories & local data sources (SQLite via Drift or sqflite).
-
-- **Bluetooth Scale Integration**: Using **flutter_reactive_ble** to connect to the Decent Scale (Service UUID `FFF0`, Char UUID `FFF4`).
-
-- **Barcode Scanning**: Employing **mobile_scanner** (ML Kit / AVFoundation) for high-performance, on-device decoding.
-
-- **Database Schema**:
-  - **Products** (manager CRUD): `barcode` (PK), `dry_weight`, `name`.
-  - **InventorySessions**: `id`, `session_name`, `created_at`, `created_by`, `status`.
-  - **InventoryEntries**: `id`, `session_id` (FK), `barcode`, `bottle_weight`, `timestamp`, `scanned_by`.
-
-- **Authentication**: Manager screens (products & sessions) protected by a PIN stored securely (`flutter_secure_storage`, SHA-256). Rate-limited attempts and optional DB encryption via SQLCipher.
-
-- **Mocks & Dev Fixtures**: A `lib/dev` folder contains JSON fixtures and mock services for BLE and barcode, toggled via a compile-time flag for rapid UI prototyping and testing.
-
-- **Folder Structure**: Feature-based modules under `lib/features`, shared widgets under `lib/shared`, core services under `lib/core`, and router/injection at root.
-
-- **Testing & CI**:
-  - **Unit tests** for domain logic & repositories (with mocks).
-  - **Widget tests** for key screens.
-  - **Integration tests** for full scan → export flows.
-  - CI pipeline configured to lint, test, build, and deploy via Fastlane or GitHub Actions.
+- **Framework & Language**: Flutter (Dart) for hot reload, rich UI, single codebase.  
+- **Architecture**: Clean Architecture with Presentation (Widgets + Riverpod), Domain (use-cases & entities), Data (repositories + Drift).  
+- **BLE Scale**: flutter_reactive_ble → Decent Scale (Service UUID `FFF0`, Char UUID `FFF4`).  
+- **Barcode**: mobile_scanner (ML Kit / AVFoundation) for on-device decoding.  
+- **Persistence**: Drift (SQLite) with tables for Products, Sessions, and Entries.  
+- **Auth**: PIN-protected manager screens via flutter_secure_storage (SHA-256).  
+- **Mocks & Dev Fixtures**: A `lib/dev` folder with `dev_config.dart` toggle and mock services.  
+- **Testing & CI**: Unit, widget, integration tests + GitHub Actions / Fastlane pipelines.
 
 ## Folder Layout
 
@@ -52,10 +33,19 @@ lib/
 │   ├── errors/                # Custom exceptions / failures
 │   ├── utils/                 # Parsers, formatters, conversion helpers
 │   └── services/              # Platform-agnostic services
-│       ├── ble_service.dart   # Wraps flutter_reactive_ble
-│       └── barcode_service.dart # Wraps mobile_scanner
-├── features/                  # Each “feature” is a self-contained module
-│   ├── auth/                  # PIN auth for manager areas
+│       ├── barcode_scanner.dart  # Wraps mobile_scanner
+│       ├── mobile_barcode_scanner.dart  # Each “feature” is a self-contained module
+│       ├── reactive_ble_scale.dart  # PIN auth for manager areas
+│       └── scale_service.dart
+├── dev/                 
+│   ├── config/                  
+│   │   └── dev_config.dart
+│   ├── data/
+│   └── mocks/
+│           ├── mock_barcode_scanner.dart
+│           └── mock_scale_service.dart
+├── features/                 
+│   ├── auth/                  
 │   │   ├── data/
 │   │   │   ├── datasources/
 │   │   │   │   └── pin_local_data_source.dart
@@ -148,13 +138,43 @@ lib/
     └── app_router.dart        # Route definitions (auto_route or plain)
 ```
 
-## Next Steps
+## What’s Done
 
-1. Finalize repository layer with Drift migrations.
-2. Build BLE prototype to validate weight streaming.
-3. Integrate barcode scans and link to inventory entries.
-4. Implement PIN-auth guard and secure storage flows.
-5. Flesh out UI screens: manager dashboard, session picker, inventory entry.
-6. Configure CI/CD for automated builds and test runs.
-7. User acceptance testing on iOS & Android devices.
+1. **Project skeleton & DI**  
+   - Directory structure under `lib/`, with `core/`, `dev/`, `features/`, etc.  
+   - `injection.dart` registers `ScaleService` & `BarcodeScanner` toggled by `useMocks`.  
+2. **Service layer**  
+   - Defined `ScaleService` & `BarcodeScanner` interfaces.  
+   - Added `ReactiveBleScaleService` & `MobileBarcodeScanner` stubs.  
+   - Added `MockScaleService` & `MockBarcodeScanner` in `lib/dev/mocks/`.  
+3. **Smoke-test UI**  
+   - `app.dart` + `main.dart` with “Connect Scale” & “Scan Barcode” buttons.  
+   - Mock services drive fake weights and canned SnackBar codes.  
+4. **Testing**  
+   - Widget test updated to verify smoke-test UI renders and responds.
 
+## Remaining Work
+
+- **Real hardware integration**  
+  - Implement BLE logic in `ReactiveBleScaleService`.  
+  - Hook up camera scanning in `MobileBarcodeScanner`.  
+- **Database layer**  
+  - Define Drift tables & migrations; build repositories & data sources.  
+- **Manager features**  
+  - PIN-entry flow and protected CRUD screens for Products & Sessions.  
+- **Inventory workflow UI**  
+  - Session picker, live weight + scan → persist entries; CSV export.  
+- **Comprehensive testing**  
+  - Unit tests for domain/use-cases, repository mocks.  
+  - Widget tests for all screens.  
+  - Integration tests covering full scan → export flow.  
+- **CI/CD & Docs**  
+  - Lint/test/build pipelines configured.  
+  - API docs for BLE UUIDs, database schema, developer onboarding.
+
+  ## Bugs
+
+  1. **Connect scale allows multiple connections at a time, (weights cycle faster in test)**
+      - Env:Development
+      - Build: Smoketest
+      - Importance: moderate
